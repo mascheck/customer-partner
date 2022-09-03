@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+    title: Matching Customer & Partner
+    version: 1.0.0
+paths:
+    /partners:
+        get:
+            description: |
+                Returns a list of partners. The list is sorted by best match. The quality of the match is determined 
+                first on average rating and second by distance to the customer.
+            parameters:
+                - in: query
+                  name: material
+                  description: Material for the floor.
+                  required: true
+                  schema:
+                      type: string
+                      enum:
+                          - wood
+                          - carpet
+                          - tiles
+                - in: query
+                  name: long
+                  description: Longitude of the home address.
+                  required: true
+                  schema:
+                      $ref: '#/components/schemas/Longitude'
+                - in: query
+                  name: lat
+                  description: Latitude of the home address.
+                  required: true
+                  schema:
+                      $ref: '#/components/schemas/Latitude'
+            responses:
+                200:
+                    description: A list of partners.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Partner'
+                400:
+                    description: Bad request is returned when one of the query parameters is missing or invalid.
+    /partners/{id}:
+        get:
+            description: Returns a specific partner.
+            parameters:
+                - in: header
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: A partner.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Partner'
+                404:
+                    description: Resource not found.
+    /offer_requests:
+        post:
+            description: Request an offer from a partner. (Not yet implemented)
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - PartnerID
+                                - FloorSize
+                                - Phone
+                            properties:
+                                PartnerID:
+                                    description: ID of the partner.
+                                    type: string
+                                FloorSize:
+                                    description: Requested floor size for the offer.
+                                    type: number
+                                Phone:
+                                    description: Phone number of the customer.
+                                    type: string
+            responses:
+                201:
+                    description: Request created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OfferRequest'
+components:
+    schemas:
+        Partner:
+            type: object
+            required:
+                - ID
+                - Name
+                - ExperiencedMaterials
+                - Address
+                - OperatingRadius
+                - Rating
+            properties:
+                ID:
+                    type: string
+                Name:
+                    type: string
+                ExperiencedMaterials:
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                            - wood
+                            - carpet
+                            - tiles
+                Address:
+                    $ref: '#/components/schemas/Address'
+                OperatingRadius:
+                    type: integer
+                Rating:
+                    type: integer
+        Address:
+            type: object
+            required:
+                - Latitude
+                - Longitude
+            properties:
+                Latitude:
+                    $ref: '#/components/schemas/Latitude'
+                Longitude:
+                    $ref: '#/components/schemas/Longitude'
+        Latitude:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+        Longitude:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+        OfferRequest:
+            type: object
+            required:
+                - ID
+                - PartnerID
+                - FloorSize
+                - Phone
+            properties:
+                ID:
+                    type: string
+                PartnerID:
+                    description: ID of the partner.
+                    type: string
+                FloorSize:
+                    description: Requested floor size for the offer.
+                    type: integer
+                Phone:
+                    description: Phone number of the customer.
+                    type: string
